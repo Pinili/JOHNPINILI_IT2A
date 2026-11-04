@@ -1,4 +1,3 @@
-
 package com.scc.ui;
 
 import com.scc.dao.UserDao;
@@ -19,6 +18,7 @@ public class AdminMenu {
     }
 
     public void display(User admin) {
+
         if (!"ADMIN".equalsIgnoreCase(admin.roles())) {
             System.out.println("Access denied. Admin only.");
             return;
@@ -27,10 +27,14 @@ public class AdminMenu {
         boolean running = true;
 
         while (running) {
-            System.out.println("\n========================================");
-            System.out.println("       ADMIN DASHBOARD");
-            System.out.println("========================================");
+
+            System.out.println();
+            System.out.println("==========================================");
+            System.out.printf("%27s%n", "ADMIN DASHBOARD");
+            System.out.println("==========================================");
+
             System.out.println("Logged in as: " + admin.username());
+
             System.out.println("1. View All Users");
             System.out.println("2. View Pending Users");
             System.out.println("3. Approve User Registration");
@@ -38,30 +42,42 @@ public class AdminMenu {
             System.out.println("5. Update User Role / Status");
             System.out.println("6. Delete User Account");
             System.out.println("7. Logout");
+
             System.out.print("Choose an option (1-7): ");
 
             String choice = scanner.nextLine().trim();
 
             switch (choice) {
+
                 case "1" -> viewAllUsers();
+
                 case "2" -> viewPendingUsers();
+
                 case "3" -> approveUser();
+
                 case "4" -> addUser();
+
                 case "5" -> updateUser();
+
                 case "6" -> deleteUser(admin);
+
                 case "7" -> {
                     running = false;
                     System.out.println("Admin logged out successfully.");
                 }
-                default -> System.out.println("Invalid option. Please try again.");
+
+                default ->
+                        System.out.println("Invalid option. Please try again.");
             }
         }
     }
 
     private void viewAllUsers() {
+
         System.out.println("\n========== ALL USERS ==========");
 
         try {
+
             List<User> users = userDao.getAllUsers();
 
             if (users.isEmpty()) {
@@ -77,9 +93,11 @@ public class AdminMenu {
     }
 
     private void viewPendingUsers() {
+
         System.out.println("\n========== PENDING USERS ==========");
 
         try {
+
             List<User> users = userDao.getPendingUsers();
 
             if (users.isEmpty()) {
@@ -95,8 +113,25 @@ public class AdminMenu {
     }
 
     private void approveUser() {
+
         System.out.println("\n========== APPROVE USER ==========");
-        int userId = readInt("Enter user ID to approve: ");
+
+        try {
+            List<User> users = userDao.getPendingUsers();
+
+            if (users.isEmpty()) {
+                System.out.println("No pending users found.");
+                return;
+            }
+
+            printUsers(users);
+
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+            return;
+        }
+
+        int userId = readInt("\nEnter user ID to approve: ");
 
         if (userId <= 0) {
             System.out.println("Invalid user ID.");
@@ -107,9 +142,10 @@ public class AdminMenu {
             boolean success = userDao.approveUser(userId);
 
             if (success) {
-                System.out.println("User approved successfully.");
+                System.out.println("\nUser approved successfully!");
+                viewAllUsers();
             } else {
-                System.out.println("User not found or could not be approved.");
+                System.out.println("User not found or not pending.");
             }
 
         } catch (SQLException e) {
@@ -118,6 +154,7 @@ public class AdminMenu {
     }
 
     private void addUser() {
+
         System.out.println("\n========== ADD NEW USER ==========");
 
         System.out.print("Enter username: ");
@@ -146,6 +183,7 @@ public class AdminMenu {
         }
 
         try {
+
             if (userDao.usernameExists(username)) {
                 System.out.println("Username already exists.");
                 return;
@@ -167,9 +205,13 @@ public class AdminMenu {
     }
 
     private void updateUser() {
+
         System.out.println("\n========== UPDATE USER ==========");
 
-        int userId = readInt("Enter user ID to update: ");
+        // Display current users
+        viewAllUsers();
+
+        int userId = readInt("\nEnter user ID to update: ");
 
         if (userId <= 0) {
             System.out.println("Invalid user ID.");
@@ -194,7 +236,11 @@ public class AdminMenu {
             boolean success = userDao.updateUser(userId, role, status);
 
             if (success) {
-                System.out.println("User updated successfully.");
+                System.out.println("\nUser updated successfully!");
+
+                // Display updated users
+                viewAllUsers();
+
             } else {
                 System.out.println("User not found or update failed.");
             }
@@ -205,9 +251,13 @@ public class AdminMenu {
     }
 
     private void deleteUser(User admin) {
+
         System.out.println("\n========== DELETE USER ==========");
 
-        int userId = readInt("Enter user ID to delete: ");
+        // Display current users
+        viewAllUsers();
+
+        int userId = readInt("\nEnter user ID to delete: ");
 
         if (userId <= 0) {
             System.out.println("Invalid user ID.");
@@ -219,7 +269,10 @@ public class AdminMenu {
             return;
         }
 
-        System.out.print("Are you sure you want to delete this user? (Y/N): ");
+        System.out.print(
+                "Are you sure you want to delete this user? (Y/N): "
+        );
+
         String confirmation = scanner.nextLine().trim();
 
         if (!confirmation.equalsIgnoreCase("Y")) {
@@ -231,7 +284,11 @@ public class AdminMenu {
             boolean success = userDao.deleteUser(userId);
 
             if (success) {
-                System.out.println("User deleted successfully.");
+                System.out.println("\nUser deleted successfully!");
+
+                // Display remaining users
+                viewAllUsers();
+
             } else {
                 System.out.println("User not found or delete failed.");
             }
@@ -242,6 +299,7 @@ public class AdminMenu {
     }
 
     private String selectRole() {
+
         System.out.println("\nSelect Role:");
         System.out.println("1. ADMIN");
         System.out.println("2. STAFF");
@@ -259,6 +317,7 @@ public class AdminMenu {
     }
 
     private String selectStatus() {
+
         System.out.println("\nSelect Status:");
         System.out.println("1. PENDING");
         System.out.println("2. APPROVED");
@@ -274,10 +333,12 @@ public class AdminMenu {
     }
 
     private int readInt(String prompt) {
+
         System.out.print(prompt);
 
         try {
             return Integer.parseInt(scanner.nextLine().trim());
+
         } catch (NumberFormatException e) {
             System.out.println("Please enter a valid number.");
             return -1;
@@ -285,14 +346,18 @@ public class AdminMenu {
     }
 
     private void printUsers(List<User> users) {
+
         System.out.printf(
                 "%-5s %-20s %-15s %-15s%n",
                 "ID", "USERNAME", "ROLE", "STATUS"
         );
 
-        System.out.println("------------------------------------------------------");
+        System.out.println(
+                "------------------------------------------------------"
+        );
 
         for (User user : users) {
+
             System.out.printf(
                     "%-5d %-20s %-15s %-15s%n",
                     user.id(),
@@ -301,5 +366,8 @@ public class AdminMenu {
                     user.status()
             );
         }
+
+        System.out.println("-----------------------------------------------");
+        System.out.println("Total Users: " + users.size());
     }
 }

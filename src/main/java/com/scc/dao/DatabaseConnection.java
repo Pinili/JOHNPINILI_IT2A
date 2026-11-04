@@ -1,4 +1,3 @@
-
 package com.scc.dao;
 
 import java.nio.file.Path;
@@ -16,12 +15,16 @@ public class DatabaseConnection {
     }
 
     public static Connection getConnection() throws SQLException {
+
         Connection connection =
                 DriverManager.getConnection(DATABASE_URL);
 
         try (Statement statement = connection.createStatement()) {
+
             statement.execute("PRAGMA foreign_keys = ON");
+
         } catch (SQLException e) {
+
             connection.close();
             throw e;
         }
@@ -30,14 +33,18 @@ public class DatabaseConnection {
     }
 
     public static void testConnection() {
+
         try (Connection connection = getConnection()) {
+
             System.out.println("Database connected successfully!");
+
             System.out.println(
-                    "Database path: "
-                            + Path.of("school_property.db")
-                            .toAbsolutePath()
+                    "Database path: " +
+                            Path.of("school_property.db").toAbsolutePath()
             );
+
         } catch (SQLException e) {
+
             System.err.println(
                     "Database connection failed: " + e.getMessage()
             );

@@ -1,4 +1,3 @@
-
 package com.scc;
 
 import com.scc.dao.DatabaseConnection;
@@ -12,6 +11,7 @@ import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) {
+
         try {
             DatabaseInitializer initializer = new DatabaseInitializer();
             initializer.initialize();
@@ -20,12 +20,12 @@ public class Main {
 
             UserDao userDao = new UserDao();
 
-            try (Scanner scanner = new Scanner(System.in)) {
-                Authentication authentication =
-                        new Authentication(userDao, scanner);
+            Scanner scanner = new Scanner(System.in);
 
-                authentication.start();
-            }
+            Authentication authentication =
+                    new Authentication(userDao, scanner);
+
+            authentication.start();
 
         } catch (SQLException e) {
             System.err.println(
