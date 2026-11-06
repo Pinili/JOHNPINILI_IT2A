@@ -1,19 +1,19 @@
-
 package com.scc.dao;
 
 import com.scc.model.User;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class UserDao {
 
-    public boolean register(String username, String password, String role)
-            throws SQLException {
+    // REGISTER USER
+    public boolean register(
+            String username,
+            String password,
+            String role
+    ) throws SQLException {
 
         String sql = """
                 INSERT INTO users (username, password, roles, status)
@@ -31,6 +31,7 @@ public class UserDao {
         }
     }
 
+    // LOGIN USER
     public User login(String username, String password)
             throws SQLException {
 
@@ -47,14 +48,9 @@ public class UserDao {
             statement.setString(2, password);
 
             try (ResultSet result = statement.executeQuery()) {
+
                 if (result.next()) {
-                    return new User(
-                            result.getInt("id"),
-                            result.getString("username"),
-                            result.getString("password"),
-                            result.getString("roles"),
-                            result.getString("status")
-                    );
+                    return readUser(result);
                 }
             }
         }
@@ -62,7 +58,10 @@ public class UserDao {
         return null;
     }
 
-    public boolean usernameExists(String username) throws SQLException {
+    // CHECK USERNAME
+    public boolean usernameExists(String username)
+            throws SQLException {
+
         String sql = "SELECT 1 FROM users WHERE username = ?";
 
         try (Connection connection = DatabaseConnection.getConnection();
@@ -76,7 +75,9 @@ public class UserDao {
         }
     }
 
+    // GET ALL USERS
     public List<User> getAllUsers() throws SQLException {
+
         String sql = """
                 SELECT id, username, password, roles, status
                 FROM users
@@ -97,7 +98,9 @@ public class UserDao {
         return users;
     }
 
+    // GET PENDING USERS
     public List<User> getPendingUsers() throws SQLException {
+
         String sql = """
                 SELECT id, username, password, roles, status
                 FROM users
@@ -119,7 +122,9 @@ public class UserDao {
         return users;
     }
 
+    // APPROVE USER
     public boolean approveUser(int id) throws SQLException {
+
         String sql = """
                 UPDATE users
                 SET status = 'APPROVED'
@@ -130,12 +135,19 @@ public class UserDao {
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setInt(1, id);
+
             return statement.executeUpdate() == 1;
         }
     }
 
-    public boolean addUser(String username, String password,
-                           String role, String status) throws SQLException {
+    // ADD USER
+    public boolean addUser(
+            String username,
+            String password,
+            String role,
+            String status
+    ) throws SQLException {
+
         String sql = """
                 INSERT INTO users (username, password, roles, status)
                 VALUES (?, ?, ?, ?)
@@ -153,8 +165,13 @@ public class UserDao {
         }
     }
 
-    public boolean updateUser(int id, String role, String status)
-            throws SQLException {
+    // UPDATE USER ROLE AND STATUS
+    public boolean updateUser(
+            int id,
+            String role,
+            String status
+    ) throws SQLException {
+
         String sql = """
                 UPDATE users
                 SET roles = ?, status = ?
@@ -172,18 +189,23 @@ public class UserDao {
         }
     }
 
+    // DELETE USER
     public boolean deleteUser(int id) throws SQLException {
+
         String sql = "DELETE FROM users WHERE id = ?";
 
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setInt(1, id);
+
             return statement.executeUpdate() == 1;
         }
     }
 
+    // READ USER
     private User readUser(ResultSet result) throws SQLException {
+
         return new User(
                 result.getInt("id"),
                 result.getString("username"),

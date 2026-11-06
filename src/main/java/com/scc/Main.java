@@ -13,7 +13,10 @@ public class Main {
     public static void main(String[] args) {
 
         try {
-            DatabaseInitializer initializer = new DatabaseInitializer();
+
+            DatabaseInitializer initializer =
+                    new DatabaseInitializer();
+
             initializer.initialize();
 
             DatabaseConnection.testConnection();
@@ -28,6 +31,7 @@ public class Main {
             authentication.start();
 
         } catch (SQLException e) {
+
             System.err.println(
                     "Failed to start application: " + e.getMessage()
             );

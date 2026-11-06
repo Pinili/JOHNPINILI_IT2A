@@ -1,6 +1,6 @@
-
 package com.scc.ui;
 
+import com.scc.dao.ActivityLogDao;
 import com.scc.dao.UserDao;
 import com.scc.model.User;
 
@@ -10,40 +10,53 @@ import java.util.Scanner;
 public class Authentication {
 
     private final UserDao userDao;
+    private final ActivityLogDao activityLogDao;
     private final Scanner scanner;
 
     public Authentication(UserDao userDao, Scanner scanner) {
         this.userDao = userDao;
         this.scanner = scanner;
+        this.activityLogDao = new ActivityLogDao();
     }
 
     public void start() {
+
         boolean running = true;
 
         while (running) {
+
             System.out.println("\n========================================");
             System.out.println("     SCHOOL PROPERTY TRACKING SYSTEM");
             System.out.println("========================================");
+
             System.out.println("1. Login");
             System.out.println("2. Register Account");
             System.out.println("3. Exit");
+
             System.out.print("Choose an option (1-3): ");
 
             String choice = scanner.nextLine().trim();
 
             switch (choice) {
+
                 case "1" -> login();
+
                 case "2" -> register();
+
                 case "3" -> {
                     running = false;
                     System.out.println("Thank you for using the system!");
                 }
-                default -> System.out.println("Invalid option. Please try again.");
+
+                default ->
+                        System.out.println("Invalid option. Please try again.");
             }
         }
     }
 
+    // REGISTER
     private void register() {
+
         System.out.println("\n========== USER REGISTRATION ==========");
 
         System.out.print("Enter username: ");
@@ -62,6 +75,7 @@ public class Authentication {
         System.out.println("2. STAFF");
         System.out.println("3. STUDENT");
         System.out.println("4. TEACHER");
+
         System.out.print("Choose role (1-4): ");
 
         String role = switch (scanner.nextLine().trim()) {
@@ -78,6 +92,7 @@ public class Authentication {
         }
 
         try {
+
             if (userDao.usernameExists(username)) {
                 System.out.println("Username already exists.");
                 return;
@@ -100,7 +115,9 @@ public class Authentication {
         }
     }
 
+    // LOGIN
     private void login() {
+
         System.out.println("\n========== LOGIN ==========");
 
         System.out.print("Enter username: ");
@@ -110,6 +127,7 @@ public class Authentication {
         String password = scanner.nextLine();
 
         try {
+
             User user = userDao.login(username, password);
 
             if (user == null) {
@@ -129,7 +147,9 @@ public class Authentication {
                 return;
             }
 
-            if (!status.equals("APPROVED") && !status.equals("APPROVE")) {
+            if (!status.equals("APPROVED")
+                    && !status.equals("APPROVE")) {
+
                 System.out.println("Your account is not approved for login.");
                 return;
             }
@@ -138,41 +158,69 @@ public class Authentication {
             System.out.println("Welcome, " + user.username());
             System.out.println("Role: " + user.roles());
 
+            recordLog(
+                    user.id(),
+                    "LOGIN",
+                    "User " + user.username() + " logged in."
+            );
+
             routeByRole(user);
+
+            recordLog(
+                    user.id(),
+                    "LOGOUT",
+                    "User " + user.username() + " logged out."
+            );
 
         } catch (SQLException e) {
             System.out.println("Login error: " + e.getMessage());
         }
     }
 
+    // ROUTE BY ROLE
     private void routeByRole(User user) {
+
         String role = user.roles().trim().toUpperCase();
 
         switch (role) {
+
             case "ADMIN" -> {
                 AdminMenu adminMenu = new AdminMenu(userDao, scanner);
                 adminMenu.display(user);
             }
+
             case "STAFF" -> staffMenu(user);
+
             case "STUDENT" -> studentMenu(user);
+
             case "TEACHER" -> teacherMenu(user);
-            default -> System.out.println("Unknown role. Contact the administrator.");
+
+            default ->
+                    System.out.println("Unknown role. Contact administrator.");
         }
     }
 
+    // STAFF MENU
     private void staffMenu(User user) {
+
         boolean loggedIn = true;
 
         while (loggedIn) {
+
             System.out.println("\n========== STAFF MENU ==========");
             System.out.println("Logged in as: " + user.username());
+
             System.out.println("1. View Profile");
             System.out.println("2. Logout");
+
             System.out.print("Choose an option: ");
 
             switch (scanner.nextLine().trim()) {
+
                 case "1" -> displayProfile(user);
+
                 case "2" -> loggedIn = false;
+
                 default -> System.out.println("Invalid option.");
             }
         }
@@ -180,19 +228,27 @@ public class Authentication {
         System.out.println("Staff logged out successfully.");
     }
 
+    // STUDENT MENU
     private void studentMenu(User user) {
+
         boolean loggedIn = true;
 
         while (loggedIn) {
+
             System.out.println("\n========== STUDENT MENU ==========");
             System.out.println("Logged in as: " + user.username());
+
             System.out.println("1. View Profile");
             System.out.println("2. Logout");
+
             System.out.print("Choose an option: ");
 
             switch (scanner.nextLine().trim()) {
+
                 case "1" -> displayProfile(user);
+
                 case "2" -> loggedIn = false;
+
                 default -> System.out.println("Invalid option.");
             }
         }
@@ -200,19 +256,27 @@ public class Authentication {
         System.out.println("Student logged out successfully.");
     }
 
+    // TEACHER MENU
     private void teacherMenu(User user) {
+
         boolean loggedIn = true;
 
         while (loggedIn) {
+
             System.out.println("\n========== TEACHER MENU ==========");
             System.out.println("Logged in as: " + user.username());
+
             System.out.println("1. View Profile");
             System.out.println("2. Logout");
+
             System.out.print("Choose an option: ");
 
             switch (scanner.nextLine().trim()) {
+
                 case "1" -> displayProfile(user);
+
                 case "2" -> loggedIn = false;
+
                 default -> System.out.println("Invalid option.");
             }
         }
@@ -220,11 +284,37 @@ public class Authentication {
         System.out.println("Teacher logged out successfully.");
     }
 
+    // DISPLAY PROFILE
     private void displayProfile(User user) {
+
         System.out.println("\n========== USER PROFILE ==========");
+
         System.out.println("ID: " + user.id());
         System.out.println("Username: " + user.username());
         System.out.println("Role: " + user.roles());
         System.out.println("Status: " + user.status());
+    }
+
+    // RECORD LOG WITHOUT INTERRUPTING THE APPLICATION
+    private void recordLog(
+            int userId,
+            String actionType,
+            String description
+    ) {
+
+        try {
+
+            activityLogDao.logAction(
+                    userId,
+                    actionType,
+                    description
+            );
+
+        } catch (SQLException e) {
+
+            System.out.println(
+                    "Activity logging error: " + e.getMessage()
+            );
+        }
     }
 }
